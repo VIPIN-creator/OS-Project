@@ -1,7 +1,12 @@
-#define MM_Max_STRUCT_NAME 32;
+#ifndef __MM__
+#define __MM__
+
+#include <stdint.h>
+
+#define MM_MAX_STRUCT_NAME 32
 
 typedef struct vm_page_family_{
-    char struct_name[MM_Max_STRUCT_NAME];
+    char struct_name[MM_MAX_STRUCT_NAME];
     uint32_t struct_size;
 } vm_page_family_t;
 
@@ -12,13 +17,15 @@ typedef struct vm_page_for_families_
 } vm_page_for_families_t;
 
 #define MAX_FAMILIES_PER_VM_PAGE \
-    (SYSTEM_PAGE_SIZE - sizeof(vm_page_for_families_t *))/sizeof(vm_page_family_t);
+    (SYSTEM_PAGE_SIZE - sizeof(vm_page_for_families_t *))/sizeof(vm_page_family_t)
 
-#define ITERATE_PAGE_FAMILIES_BEGIN(vm_page_for_families_ptr, curr) \
-{
-    unint32_t count = 0
+#define ITERATE_PAGE_FAMILIES_BEGIN(vm_page_for_families_ptr, curr)             \
+{                                                                               \
+    uint32_t count = 0;                                                         \
     for(curr = (vm_page_family_t *)&vm_page_for_families_ptr->vm_page_family[0]; \
-        count < MAX_FAMILIES_PER_VM_PAGE && curr->struct_size \
+        curr->struct_size && count < MAX_FAMILIES_PER_VM_PAGE ;                 \
         curr++, count++ ) {
 
-#define ITERATE_PAGE_FAMILIES_END(vm_page_for_fammilies_ptr, curr) }}
+#define ITERATE_PAGE_FAMILIES_END(vm_page_for_families_ptr, curr) }}
+
+#endif /**/
