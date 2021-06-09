@@ -41,6 +41,8 @@ mm_return_vm_page_to_kernel(void *vm_page, int units){
 
 }
 
+// phase  - 2
+
 // Page family instantiate algo
 void 
 mm_instantiate_new_page_family(
@@ -150,6 +152,25 @@ lookup_page_family_by_name(char *struct_name){
 
 }
 
+// phase - 4
+
+// here we merge two blocks whose upper and lower blocks are either not present or they are not free.
+static void 
+mm_union_free_blocks(block_meta_data_t *first, block_meta_data_t *second){
+
+    // if firrst or second is not free then return  
+    assert(first->is_free == MM_TRUE && second->is_free == MM_TRUE);
+
+    // update the size of the block after merging them
+    first->block_size += sizeof(block_meta_data_t) + second->block_size;
+
+    // update the next ptr of block after merging them
+    first->next_block = second->next_block;
+
+    // update the prev ptr of block next to second block
+    if(second->next_block)
+        second->next_block->prev_block = first;
+}
 
 
 

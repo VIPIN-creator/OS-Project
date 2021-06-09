@@ -10,6 +10,8 @@ typedef enum{
 
 #define MM_MAX_STRUCT_NAME 32
 
+// phase - 2
+
 typedef struct vm_page_family_{
     char struct_name[MM_MAX_STRUCT_NAME];
     uint32_t struct_size;
@@ -35,6 +37,8 @@ typedef struct vm_page_for_families_
 
 vm_page_family_t *
 lookup_page_family_by_name(char *struct_name);
+
+// phase - 3
 
 typedef struct block_meta_data_
 {
@@ -76,6 +80,17 @@ typedef struct block_meta_data_
 //  The macro must return the starting address of prev metablock present in VM page (towards lower address)
 #define PREV_META_BLOCK(block_meta_data_ptr) \
          (block_meta_data_ptr->prev_block)
+
+
+// phase - 4 
+
+#define mm_bind_blocks_for_allocation(allocated_meta_block, free_meta_block)  \
+          free_meta_block->prev_block = allocated_meta_block;        \
+          free_meta_block->next_block = allocated_meta_block->next_block;    \
+          allocated_meta_block->next_block = free_meta_block;                \
+          if (free_meta_block->next_block)\
+          free_meta_block->next_block->prev_block = free_meta_block
+
 
 
 #endif /**/
