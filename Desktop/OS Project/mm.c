@@ -172,6 +172,76 @@ mm_union_free_blocks(block_meta_data_t *first, block_meta_data_t *second){
         second->next_block->prev_block = first;
 }
 
+// phase - 5
+
+vm_bool_t 
+mm_is_vm_page_empty(vm_page_t *vm_page){
+    if(vm_page->block_meta_data.is_free == MM_TRUE 
+       && vm_page->block_meta_data.next_block == 0
+       && vm_page->block_meta_data.prev_block == 0) return MM_TRUE;
+
+       return MM_FALSE;
+}
+
+static inline uint32_t
+mm_max_page_allocatable_memory(int units){
+    return (uint32_t)((SYSTEM_PAGE_SIZE*units) - offset_of(vm_page_t, page_memory)); 
+}
+
+vm_page_t*
+allocate_vm_page(vm_page_family_t *vm_page_family){
+    vm_page_t *vm_page = mm_get_new_vm_page_from_kernel(1);
+
+    // initialize lower most meta data block of the VM page
+    MARK_VM_PAGE_EMPTY(vm_page);
+
+    vm_page->prev = vm_page->next = 0;
+
+    // set the back pointer to the page family
+    vm_page->pg_family = vm_page_family;
+
+    // insert new VM page to the head of linked list
+    vm_page->next = vm_page_family->first_page;
+    if(vm_page_family->first_page) vm_page_family->first_page->prev = vm_page;
+    vm_page_family->first_page = vm_page;
+
+    return vm_page;
+
+}
+
+void 
+mm_vm_page_delete_and_free(vm_page_t *vm_page){
+
+    vm_page_family_t *vm_page_family = vm_page->pg_family;
+
+    assert(vm_page_family->first_page);
+
+    // if the first vm_page is current or the vm paeg is the head of the list
+    if(vm_page_family->first_page == vm_page){
+        vm_page_family->first_page = vm_page->next;
+        
+        if(vm_page->next) 
+            vm_page->next->prev = 0;
+        
+        vm_page->next = vm_page->prev = 0;
+
+        mm_return_vm_page_to_kernel((void *)vm_page, 1);
+
+        return ;
+    }
+
+    // if the vm_page is middle or last node
+    if(vm_page->next){
+        vm_page->prev->next = vm_page->next;
+        vm_page->next->prev = vm_page->prev;
+    }
+
+    mm_return_vm_page_to_kernel((void *)vm_page, 1);
+
+    return ;
+  
+}
+
 
 
 
